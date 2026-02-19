@@ -1,0 +1,69 @@
+GPU-Cluster-Architects-Slurm-PROJECTS
+*****************************************
+basic peroject with code
+Building a basic GPU cluster with Slurm on Kubernetes involves installing an operator to manage Slurm components as Pods. The most common tool for this is Slinky (by SchedMD). 
+Phase 1: Cluster Setup
+First, install the NVIDIA GPU Operator to ensure your Kubernetes nodes can discover and use physical GPUs. 
+bash
+# 1. Add NVIDIA Helm repo
+[helm repo add nvidia](https://helm.ngc.nvidia.com/nvidia) && helm repo update
+
+# 2. Install GPU Operator
+helm install --wait --generate-name \
+  -n gpu-operator --create-namespace \
+  nvidia/gpu-operator
+Use code with caution.
+
+Phase 2: Install Slurm via Slinky 
+The Slinky Operator manages the Slurm controller (slurmctld), database (slurmdbd), and compute nodes (slurmd). 
+bash
+# 1. Install Slinky CRDs and Operator
+helm install slurm-operator-crds oci://ghcr.io/slinkyproject/charts/slurm-operator-crds
+helm install slurm-operator oci://ghcr.io/slinkyproject/charts/slurm-operator \
+  --namespace=slinky --create-namespace
+
+# 2. Deploy a Slurm cluster instance
+helm install slurm oci://ghcr.io/slinkyproject/charts/slurm \
+  --namespace=slurm --create-namespace
+Use code with caution.
+
+Phase 3: Verify & Run a Job
+Once the pods are running, you can interact with the Slurm controller just like a traditional HPC head node. 
+Check Pod Status:
+bash
+kubectl get pods -n slurm
+# Expected: slurmctld-0, slurmdbd-0, and slurmd-0 (compute node)
+Use code with caution.
+
+Submit a Test GPU Job:
+Exec into the controller and run a simple CUDA vector addition command. 
+bash
+# Access the controller
+kubectl exec -it slurmctld-0 -n slurm -- bash
+
+# Run a job on 1 GPU
+srun --gres=gpu:1 nvidia-smi
+Use code with caution.
+
+Phase 4: Key Project Files (Conceptual) 
+For a custom deployment, you would define a NodeSet in a YAML file to tell Kubernetes which nodes should act as Slurm workers: 
+yaml
+apiVersion: slinky.slurm.net/v1alpha1
+kind: NodeSet
+metadata:
+  name: gpu-nodes
+  namespace: slurm
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: slurmd
+        image: ghcr.io/slinkyproject/slurmd:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1  # Requests 1 GPU from K8s for Slurm use
+Use code with caution.
+
+For a managed experience without manual YAML, you can use the Nebius Managed Soperator for one-click Slurm deployment on Kubernetes.
+Would you like the full Python training script for a multi-node DDP (Distributed Data Parallel) job to run on this setup?
