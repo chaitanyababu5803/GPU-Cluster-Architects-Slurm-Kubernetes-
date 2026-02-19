@@ -26,3 +26,35 @@ Would you like to explore a specific deployment guide for an operator like Slink
 
 
 
+************************************
+To implement a high-performance GPU cluster using Slurm and Kubernetes, architects typically use one of two primary approaches: Cloud-Native Managed Slurm or Operator-driven Hybrid Clusters.
+1. Cloud-Native Managed Slurm Tutorials
+Cloud providers offer "HyperPod" or managed services that automate the integration of Slurm and Kubernetes. 
+AWS SageMaker HyperPod (GPU Slurm): A comprehensive guide on setting up a Slurm-orchestrated cluster for pre-training large-scale models.
+Google GKE GPU Setup: While GKE is natively Kubernetes, Google provides Terraform code and a repo to specifically deploy Slurm on GKE worker nodes.
+Nebius Managed Soperator: A tutorial for deploying a 32-GPU Slurm cluster within a Kubernetes environment using their specialized operator. 
+
+2. Operator-Driven (Hybrid) Tutorials
+For architects building their own infrastructure, these operators bridge the gap by running Slurm components as Kubernetes pods.
+Slinky (SchedMD) Installation: A step-by-step guide to installing the official Slinky operator, configuring NodeSets for GPU workers, and enabling Slurm Accounting via MariaDB.
+Soperator (Nebius) Open-Source Guide: Instructions for deploying Soperator with Helm, requiring shared storage (NFS/GlusterFS) and the NVIDIA GPU Operator.
+AMD Instinct GPU Slinky Example: A specialized tutorial for architects using AMD GPUs, detailing how to build a Slurm compute node image and prep nodes for training. 
+
+3. Core Components for Any Tutorial
+Regardless of the platform, your deployment must follow these technical steps:
+Driver Management: Deploy the NVIDIA GPU Operator to automate driver and container runtime installation.
+Resource Discovery: Configure gres.conf (Generic Resource Scheduling) so Slurm can identify the specific GPUs (e.g., H100, A100) available on each Kubernetes node.
+Networking: Ensure your CNI (like Cilium) supports preserving source IPs, which is critical for Slurm node-to-node communication.
+Verification: Test your setup by running a simple CUDA vector-add pod in K8s or using srun --gres=gpu:1 nvidia-smi in Slurm. 
+
+Would you like a deep dive into the Helm configuration for Slinky, or do you need a comparison of shared storage options like Lustre vs. NFS for these clusters?
+
+********************************************
+https://docs.aws.amazon.com/sagemaker/latest/dg/hyperpod-gpu-slurm-pretrain-tutorial.html
+https://docs.cloud.google.com/kubernetes-engine/docs/concepts/gpus
+https://medium.com/google-cloud/deploy-slurm-on-gke-49485fe8c7f8
+https://docs.nebius.com/slurm-soperator/managed-soperator/manage
+https://slinky.schedmd.com/projects/slurm-operator/en/release-1.0/installation.html
+https://github.com/nebius/soperator
+https://instinct.docs.amd.com/projects/gpu-operator/en/latest/slinky/slinky-example.html
+*******************************
